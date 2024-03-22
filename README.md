@@ -1,5 +1,8 @@
 # Computer-Vision-Final-Project
 
+Kaggle Dataset Original Paper:
+https://openaccess.thecvf.com/content/CVPR2022W/CVSports/papers/Scott_SoccerTrack_A_Dataset_and_Tracking_Algorithm_for_Soccer_With_Fish-Eye_CVPRW_2022_paper.pdf
+
 Step 1:
 Design Faster R-CNN of some sort to create bounding boxes, and train a subset of the video frames from SoccerTrack dataset.
 
