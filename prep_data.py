@@ -13,13 +13,6 @@ from torchvision.transforms import Compose, ToTensor, Normalize
 from sklearn.model_selection import train_test_split
 
 
-# bb_left and bb_top are the top left corner, and bb_width and bb_height are the dimensions of the bounding box
-# x_max would be bb_left + bb_width
-# y_max would be bb_top + bb_height
-# x_min = bb_left
-# y_min = bb_top
-# Aim to track the player id in each frame
-
 def load_annotations(csv_path):
     data = pd.read_csv(csv_path, header=None)
     data.columns = data.iloc[2]
@@ -36,21 +29,21 @@ def extract_frames(video_path, output_dir, frame_numbers, past_frames):
     while success:
         success, frame = cap.read()
         if frame_idx in frame_numbers and success:
-            frame_path = os.path.join(output_dir, f"frame_{(frame_idx+past_frames):04d}.jpg")
+            frame_path = os.path.join(output_dir, f"frame_{(frame_idx+past_frames):05d}.jpg")
             cv2.imwrite(frame_path, frame)
         frame_idx += 1
     cap.release()
 
-def get_frame_path(frame_number, output_dir):
-    return os.path.join(output_dir, f"frame_{frame_number:04f}.jpg")
+def get_frame_path(frame_number, output_dir, past_frames):
+    return os.path.join(output_dir, f"frame_{int(frame_number)+past_frames:05d}.jpg")
 
-def preprocess_annotations(annotations, output_dir):
+def preprocess_annotations(annotations, output_dir, past_frames):
     temp1 = annotations['bb_left'].add(annotations['bb_width'].rename({'bb_width':'bb_left'},axis=1),fill_value=0)
     annotations['bb_width'] = temp1
     temp2 = annotations['bb_top'].add(annotations['bb_height'].rename({'bb_height':'bb_top'},axis=1),fill_value=0)
     annotations['bb_height'] = temp2
     annotations = annotations.rename({'bb_width':'x_max', 'bb_height':'y_max'}, axis=1)
-    annotations['frame_path'] = annotations['frame'].apply(lambda x: get_frame_path(x, output_dir))
+    annotations['frame_path'] = annotations['frame'].apply(lambda x: get_frame_path(x, output_dir, past_frames))
     return annotations
 
 def split_dataset(annotations, val_size=0.2, test_size=0.1):
@@ -64,7 +57,7 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
     all_annotations = []
     past_frames = 0
     
-    for i in range(60):  # Assuming 60 pairs of videos and CSV files (top view dataset)
+    for i in range(4):  # should be 60 but thats way too many
         csv_path = os.path.join(annotations_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.csv")
         video_path = os.path.join(videos_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.mp4")
         
@@ -74,7 +67,7 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
         if save_frames:
             extract_frames(video_path, frames_output_dir, frame_numbers, past_frames)
         
-        preprocessed_annotations = preprocess_annotations(annotations, frames_output_dir)
+        preprocessed_annotations = preprocess_annotations(annotations, frames_output_dir, past_frames)
         all_annotations.append(preprocessed_annotations)
         past_frames += len(frame_numbers)
     
@@ -87,8 +80,11 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
     print("Validation annotations:", len(val_annots))
     print("Testing annotations:", len(test_annots))
 
+    return all_annotations_df
 
-annotations_dir = '.\\data\\top_view\\annotations'
-videos_dir = '.\\data\\top_view\\videos'
-frames_output_dir = '.\\data\\top_view\\frames'
-prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False)
+
+if __name__=="__main__":
+    annotations_dir = '.\\data\\top_view\\annotations'
+    videos_dir = '.\\data\\top_view\\videos'
+    frames_output_dir = '.\\data\\top_view\\frames'
+    prep(annotations_dir, videos_dir, frames_output_dir, save_frames=True)

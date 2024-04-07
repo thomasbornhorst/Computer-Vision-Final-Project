@@ -12,6 +12,7 @@ from torch.optim import SGD
 from torchvision.transforms import Compose, ToTensor, Normalize
 from sklearn.model_selection import train_test_split
 import tensorflow as TF
+from prep_data import prep
 
 class SoccerTrackDataset(Dataset):
     def __init__(self, annotations, img_dir, transforms=None):
@@ -24,16 +25,17 @@ class SoccerTrackDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.annotations.iloc[idx]
-        img_path = os.path.join(self.img_dir, row['frame_path'])
+        img_path = row['frame_path']
         image = read_image(img_path).float() / 255.0  # Normalize to [0, 1]
         
-        # Increment player ID by 1 to reserve 0 for the background
-        box = torch.tensor([row['bb_left'], row['bb_top'], row['x_max'], row['y_max']], dtype=torch.float32).unsqueeze(0)
-        label = row['PlayerID'] + 1  # Increment player ID by 1
-        labels = torch.tensor([label], dtype=torch.int64)
+        # Increment player idID by 1 to reserve 0 for the background
+        boxes = torch.tensor([row['bb_left'], row['bb_top'], row['x_max'], row['y_max']], dtype=torch.float32)
+        boxes = boxes.T
+        labels = range(1,24)
+        labels = torch.tensor(labels, dtype=torch.int64)
         
         target = {}
-        target['boxes'] = box
+        target['boxes'] = boxes
         target['labels'] = labels
         target['image_id'] = torch.tensor([idx])
 
@@ -87,16 +89,16 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
         print(f"Epoch #{epoch+1} Loss: {total_loss / len(data_loader)}")
 
 def main():
-    annotations_path = '/path/to/your/annotations.csv'
-    img_dir = '/path/to/your/images'
-    annotations_df = pd.read_csv(annotations_path)
-    max_player_id = annotations_df['PlayerID'].max()
+    annotations_dir = '.\\data\\top_view\\annotations'
+    videos_dir = '.\\data\\top_view\\videos'
+    img_dir = '.\\data\\top_view\\frames'
+    annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
+    num_classes = 23 # 22 players + 1 ball
 
-    # Increment max_player_id by 1 since we shifted player IDs by +1 to reserve 0 for background
-    model = get_faster_rcnn_model(max_player_id + 2)
+    dataset = SoccerTrackDataset(annotations_df, img_dir)
+    data_loader = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=lambda x: list(zip(*x)))
 
-    dataset = SoccerTrackDataset(annotations_df, img_dir, transforms=ToTensor())
-    data_loader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=lambda x: list(zip(*x)))
+    model = get_faster_rcnn_model(num_classes)
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.005)
 
