@@ -73,12 +73,10 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
     
     all_annotations_df = pd.concat(all_annotations, ignore_index=True)
     
-    train_annots, val_annots, test_annots = split_dataset(all_annotations_df, val_size=0.2, test_size=0.1)
-
-    #  use train_annots, val_annots, and test_annots for training, validating, and testing the model
-    print("Training annotations:", len(train_annots))
-    print("Validation annotations:", len(val_annots))
-    print("Testing annotations:", len(test_annots))
+    # train_annots, val_annots, test_annots = split_dataset(all_annotations_df, val_size=0.2, test_size=0.1)
+    # print("Training annotations:", len(train_annots))
+    # print("Validation annotations:", len(val_annots))
+    # print("Testing annotations:", len(test_annots))
 
     return all_annotations_df
 

@@ -96,7 +96,7 @@ def main():
     num_classes = 23 # 22 players + 1 ball
 
     dataset = SoccerTrackDataset(annotations_df, img_dir)
-    data_loader = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=lambda x: list(zip(*x)))
+    data_loader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=lambda x: list(zip(*x)))
 
     model = get_faster_rcnn_model(num_classes)
 
