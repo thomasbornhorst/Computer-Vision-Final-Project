@@ -89,11 +89,11 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
         print(f"Epoch #{epoch+1} Loss: {total_loss / len(data_loader)}")
 
 def main():
-    annotations_dir = '.\\data\\top_view\\annotations'
-    videos_dir = '.\\data\\top_view\\videos'
-    img_dir = '.\\data\\top_view\\frames'
+    annotations_dir = './data/top_view/annotations'
+    videos_dir = './data/top_view/videos'
+    img_dir = './data/top_view/frames'
     annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
-    num_classes = 23 # 22 players + 1 ball
+    num_classes = 24 # 22 players + 1 ball
 
     dataset = SoccerTrackDataset(annotations_df, img_dir)
     data_loader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=lambda x: list(zip(*x)))

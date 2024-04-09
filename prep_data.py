@@ -57,7 +57,7 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
     all_annotations = []
     past_frames = 0
     
-    for i in range(4):  # should be 60 but thats way too many
+    for i in range(1):  # should be 60 but thats way too many
         csv_path = os.path.join(annotations_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.csv")
         video_path = os.path.join(videos_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.mp4")
         
@@ -82,7 +82,7 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
 
 
 if __name__=="__main__":
-    annotations_dir = '.\\data\\top_view\\annotations'
-    videos_dir = '.\\data\\top_view\\videos'
-    frames_output_dir = '.\\data\\top_view\\frames'
+    annotations_dir = './data/top_view/annotations'
+    videos_dir = './data/top_view/videos'
+    frames_output_dir = './data/top_view/frames'
     prep(annotations_dir, videos_dir, frames_output_dir, save_frames=True)
