@@ -1,17 +1,11 @@
-import torchvision
 import torch
 from torch.utils.data import Dataset, DataLoader
 import os
-import cv2
-import pandas as pd
 from torch.utils.data import Dataset
 from torchvision.io import read_image
 import torchvision.transforms as transforms
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
 from torch.optim import SGD
-from torchvision.transforms import Compose, ToTensor, Normalize
-from sklearn.model_selection import train_test_split
-import tensorflow as TF
 from prep_data import prep
 
 class SoccerTrackDataset(Dataset):
@@ -56,13 +50,13 @@ def get_faster_rcnn_model(num_classes):
     - model (FasterRCNN): A Faster R-CNN model adjusted for the specified number of classes.
     """
     # Load an instance segmentation model pre-trained on COCO
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    model = fasterrcnn_resnet50_fpn()
     
     # Get the number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     
     # Replace the pre-trained head with a new one for the specified number of classes
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    model.roi_heads.box_predictor = faster_rcnn.FastRCNNPredictor(in_features, num_classes)
     
     return model
 
