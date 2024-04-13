@@ -85,6 +85,7 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
 
         if epoch % 100 == 0:
             save_model(model)
+    save_model(model)
 
 def main(load_saved_model = False):
     annotations_dir = './data/top_view/annotations'
