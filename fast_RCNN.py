@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
 from torch.optim import SGD
 from prep_data import prep
+import argparse
 
 class SoccerTrackDataset(Dataset):
     def __init__(self, annotations, img_dir, transforms=None):
@@ -82,7 +83,10 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
         
         print(f"Epoch #{epoch+1} Loss: {total_loss / len(data_loader)}")
 
-def main():
+        if epoch % 100 == 0:
+            save_model(model)
+
+def main(load_saved_model = False):
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     img_dir = './data/top_view/frames'
@@ -94,10 +98,23 @@ def main():
 
     model = get_faster_rcnn_model(num_classes)
 
+    if(load_saved_model):
+        load_model(model)
+
     optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.005)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     train_model(model, data_loader, optimizer, device, num_epochs=10)
 
+def save_model(model):
+    torch.save(model.state_dict(), 'rcnn_model.pth')
+
+def load_model(model):
+    model.load_state_dict(torch.load('rcnn_model.pth')) 
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(prog='FastRCNN', description='Trains faster RCNN on frame data')
+    parser.add_argument('-l', action='store_true')
+    args = parser.parse_args()
+
+    main(load_saved_model=args.l)
