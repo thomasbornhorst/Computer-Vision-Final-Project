@@ -53,11 +53,11 @@ def split_dataset(annotations, val_size=0.2, test_size=0.1):
     train_annots, val_annots = train_test_split(train_val_annots, test_size=adjusted_val_size)
     return train_annots, val_annots, test_annots
 
-def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
+def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False, start_vid = 0, end_vid = 60):
     all_annotations = []
-    past_frames = 0
+    past_frames = 900*start_vid
     
-    for i in range(60):  # should be 60 but thats way too many
+    for i in range(start_vid, end_vid):  # should be 60 but thats way too many
         csv_path = os.path.join(annotations_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.csv")
         video_path = os.path.join(videos_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.mp4")
         
