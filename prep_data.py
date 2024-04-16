@@ -28,10 +28,10 @@ def extract_frames(video_path, output_dir, frame_numbers, past_frames):
     success, frame_idx = True, 1
     while success:
         success, frame = cap.read()
-        if frame_idx in frame_numbers and success:
+        if (frame_idx in frame_numbers) and success:
             frame_path = os.path.join(output_dir, f"frame_{(frame_idx+past_frames):05d}.jpg")
             cv2.imwrite(frame_path, frame)
-        frame_idx += 1
+            frame_idx += 1
     cap.release()
 
 def get_frame_path(frame_number, output_dir, past_frames):
@@ -57,20 +57,20 @@ def prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False):
     all_annotations = []
     past_frames = 0
     
-    for i in range(1):  # should be 60 but thats way too many
+    for i in range(60):  # should be 60 but thats way too many
         csv_path = os.path.join(annotations_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.csv")
         video_path = os.path.join(videos_dir, f"D_20220220_1_{i*30:04d}_{(i+1)*30:04d}.mp4")
         
         annotations = load_annotations(csv_path)
-        frame_numbers = sorted(annotations['frame'].unique())
+        frame_numbers = sorted(annotations['frame'])
         
         if save_frames:
             extract_frames(video_path, frames_output_dir, frame_numbers, past_frames)
         
         preprocessed_annotations = preprocess_annotations(annotations, frames_output_dir, past_frames)
         all_annotations.append(preprocessed_annotations)
-        past_frames += len(frame_numbers)
-    
+        past_frames += 900
+
     all_annotations_df = pd.concat(all_annotations, ignore_index=True)
     
     # train_annots, val_annots, test_annots = split_dataset(all_annotations_df, val_size=0.2, test_size=0.1)

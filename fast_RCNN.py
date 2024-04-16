@@ -8,6 +8,7 @@ from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
 from torch.optim import SGD
 from prep_data import prep
 import argparse
+from sklearn.model_selection import train_test_split
 
 class SoccerTrackDataset(Dataset):
     def __init__(self, annotations, img_dir, transforms=None):
@@ -83,8 +84,8 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
         
         print(f"Epoch #{epoch+1} Loss: {total_loss / len(data_loader)}")
 
-        if epoch % 100 == 0:
-            save_model(model)
+        save_model(model)
+        
     save_model(model)
 
 def main(load_saved_model = False):
@@ -94,8 +95,9 @@ def main(load_saved_model = False):
     annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
     num_classes = 24 # 22 players + 1 ball
 
-    dataset = SoccerTrackDataset(annotations_df, img_dir)
-    data_loader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=lambda x: list(zip(*x)))
+    train_data, test_data = train_test_split(annotations_df, test_size=0.1, random_state=42)
+    dataset = SoccerTrackDataset(train_data, img_dir)
+    data_loader = DataLoader(dataset, batch_size=16, collate_fn=lambda x: list(zip(*x)))
 
     model = get_faster_rcnn_model(num_classes)
 
