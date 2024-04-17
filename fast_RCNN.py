@@ -27,7 +27,7 @@ class SoccerTrackDataset(Dataset):
         # Increment player idID by 1 to reserve 0 for the background
         boxes = torch.tensor([row['bb_left'], row['bb_top'], row['x_max'], row['y_max']], dtype=torch.float32)
         boxes = boxes.T
-        labels = range(1,24)
+        labels = [1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,3]
         labels = torch.tensor(labels, dtype=torch.int64)
         
         target = {}
@@ -69,7 +69,7 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
         model.train()
         total_loss = 0
         
-        for images, targets in data_loader:
+        for iter, (images, targets) in enumerate(data_loader):
             images = [img.to(device) for img in images]
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
@@ -81,23 +81,24 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
             optimizer.step()
 
             total_loss += losses.item()
+
+            print(f"Epoch {epoch}, iter {iter}, loss: {total_loss / (iter + 1)}")
+            #save_model(model)
+
+            if iter == 50: return
         
         print(f"Epoch #{epoch+1} Loss: {total_loss / len(data_loader)}")
-
-        save_model(model)
-        
-    save_model(model)
 
 def main(load_saved_model = False):
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     img_dir = './data/top_view/frames'
     annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
-    num_classes = 24 # 22 players + 1 ball
+    num_classes = 4 # 22 players + 1 ball
 
     train_data, test_data = train_test_split(annotations_df, test_size=0.1, random_state=42)
     dataset = SoccerTrackDataset(train_data, img_dir)
-    data_loader = DataLoader(dataset, batch_size=16, collate_fn=lambda x: list(zip(*x)))
+    data_loader = DataLoader(dataset, batch_size=1, collate_fn=lambda x: list(zip(*x)))
 
     model = get_faster_rcnn_model(num_classes)
 
@@ -107,7 +108,7 @@ def main(load_saved_model = False):
     optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.005)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    train_model(model, data_loader, optimizer, device, num_epochs=10)
+    train_model(model, data_loader, optimizer, device, num_epochs=1)
 
 def save_model(model):
     torch.save(model.state_dict(), 'rcnn_model.pth')

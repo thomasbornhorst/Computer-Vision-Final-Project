@@ -9,11 +9,15 @@ def make_tracking_gif(df):
 
     team1 = ax.scatter(df.iloc[0, :11]['x_center'].to_list(), df.iloc[0, 23:34]['y_center'].to_list(), color='blue', label='Team 1')
     team2 = ax.scatter(df.iloc[0, 11:22]['x_center'].to_list(), df.iloc[0, 34:45]['y_center'].to_list(), color='red', label='Team 2')
-    ball = ax.scatter(df.iloc[0, 22:23]['x_center'], df.iloc[0, 45:46]['y_center'], color='black', label='Ball')
+    ball = ax.scatter(df.iloc[0, 22:23]['x_center'], df.iloc[0, 45:46]['y_center'], color='black', label='Ball', facecolors='none')
 
     ax.set_xlim(0,3840)
     ax.set_ylim(0,2160)
     ax.set_title('Soccer Field')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.xaxis.set_tick_params(labelbottom=False)
+    ax.yaxis.set_tick_params(labelleft=False)
     ax.legend()
 
     def update(frame):
