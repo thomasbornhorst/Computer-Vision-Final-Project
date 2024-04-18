@@ -47,13 +47,7 @@ def track_possession(df):
     num_frames = len(df)
     # num_frames = 100
 
-    team1_has_poss = True
     team1_poss_frame_count = 0
-
-    pending_poss_frames = []
-    # IDEA: Pause possession count on pass until can determine next team to gain full possession (check velocity)
-
-    last_ball_position = None
 
     for frame in range(num_frames):
         team1_positions = np.array([df.iloc[frame, :11]['x_center'].to_numpy(), df.iloc[frame, 23:34]['y_center'].to_numpy()])
@@ -66,32 +60,10 @@ def track_possession(df):
         team1_min_dist = team_min_dist(team1_dist_to_ball)
         team2_min_dist = team_min_dist(team2_dist_to_ball)
 
-        if last_ball_position is not None:
-            ball_position_change = np.linalg.norm(ball_position - last_ball_position)
-
-        possession_change = False
-
         if team1_min_dist < team2_min_dist:
-            if not team1_has_poss:
-                possession_change = True
-                team1_has_poss = True
-        else:
-            if team1_has_poss:
-                possession_change = True
-                team1_has_poss = False
-
-        if possession_change:
-            print(f"{frame}: {team1_has_poss}")
-        
-        # if min(team1_min_dist, team2_min_dist) > 40: #Probably pass (or lost ball)
-        #     print("PASS")
-
-        last_ball_position = ball_position
-
-        if team1_has_poss:
             team1_poss_frame_count += 1
 
-    print(f"Team 1 had possession {100 * team1_poss_frame_count / num_frames}% of the time")
+    print(f"Team 1 had possession {100 * team1_poss_frame_count / num_frames : .2f}% of the time ({team1_poss_frame_count / 30 : .2f} out of {num_frames / 30 : .2f} total seconds)")
 
 def team_min_dist(team_dist_to_ball):
     min_dist = -1
