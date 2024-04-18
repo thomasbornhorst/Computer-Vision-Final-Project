@@ -31,7 +31,7 @@ def make_tracking_gif(df):
 
         return team1, team2, ball
 
-    ani = FuncAnimation(fig, update, frames=len(df), interval=1, blit=True)
+    ani = FuncAnimation(fig, update, frames=600, interval=1, blit=True) # len(df)
     ani.save('tracking_animation.gif')
     
 
@@ -43,6 +43,69 @@ def centers_only(annotations_df):
     annotations_df = annotations_df.rename({'bb_left':'x_center', 'bb_top':'y_center'}, axis=1)
     return pd.concat([annotations_df['x_center'], annotations_df['y_center']],axis=1)
 
+def track_possession(df):
+    num_frames = len(df)
+    # num_frames = 100
+
+    team1_has_poss = True
+    team1_poss_frame_count = 0
+
+    pending_poss_frames = []
+    # IDEA: Pause possession count on pass until can determine next team to gain full possession (check velocity)
+
+    last_ball_position = None
+
+    for frame in range(num_frames):
+        team1_positions = np.array([df.iloc[frame, :11]['x_center'].to_numpy(), df.iloc[frame, 23:34]['y_center'].to_numpy()])
+        team2_positions = np.array([df.iloc[frame, 11:22]['x_center'].to_numpy(), df.iloc[frame, 34:45]['y_center'].to_numpy()])
+        ball_position = np.array([df.iloc[frame, 22:23]['x_center'], df.iloc[frame, 45:46]['y_center']])
+
+        team1_dist_to_ball = np.absolute(np.array([team1_positions[0] - ball_position[0], team1_positions[1] - ball_position[1]]))
+        team2_dist_to_ball = np.absolute(np.array([team2_positions[0] - ball_position[0], team2_positions[1] - ball_position[1]]))
+
+        team1_min_dist = team_min_dist(team1_dist_to_ball)
+        team2_min_dist = team_min_dist(team2_dist_to_ball)
+
+        if last_ball_position is not None:
+            ball_position_change = np.linalg.norm(ball_position - last_ball_position)
+
+        possession_change = False
+
+        if team1_min_dist < team2_min_dist:
+            if not team1_has_poss:
+                possession_change = True
+                team1_has_poss = True
+        else:
+            if team1_has_poss:
+                possession_change = True
+                team1_has_poss = False
+
+        if possession_change:
+            print(f"{frame}: {team1_has_poss}")
+        
+        # if min(team1_min_dist, team2_min_dist) > 40: #Probably pass (or lost ball)
+        #     print("PASS")
+
+        last_ball_position = ball_position
+
+        if team1_has_poss:
+            team1_poss_frame_count += 1
+
+    print(f"Team 1 had possession {100 * team1_poss_frame_count / num_frames}% of the time")
+
+def team_min_dist(team_dist_to_ball):
+    min_dist = -1
+
+    for i in range(len(team_dist_to_ball[0])):
+        player_x_dist = team_dist_to_ball[0][i]
+        player_y_dist = team_dist_to_ball[1][i]
+        new_dist = np.sqrt(player_x_dist**2 + player_y_dist**2)
+
+        if min_dist == -1 or new_dist < min_dist:
+            min_dist = new_dist
+
+    return min_dist    
+
 def main():
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
@@ -51,7 +114,9 @@ def main():
 
     centers_df = centers_only(annotations_df)
 
-    make_tracking_gif(centers_df)
+    track_possession(centers_df)
+
+    # make_tracking_gif(centers_df)
 
 if __name__ == "__main__":
     main()
