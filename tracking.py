@@ -31,8 +31,8 @@ def make_tracking_gif(df):
 
         return team1, team2, ball
 
-    ani = FuncAnimation(fig, update, frames=600, interval=1, blit=True) # len(df)
-    ani.save('tracking_animation.gif')
+    ani = FuncAnimation(fig, update, frames=len(df), interval=1, blit=True)
+    ani.save('tracking_animation.gif', fps=30)
     
 
 def centers_only(annotations_df):
@@ -88,7 +88,7 @@ def main():
 
     track_possession(centers_df)
 
-    # make_tracking_gif(centers_df)
+    make_tracking_gif(centers_df)
 
 if __name__ == "__main__":
     main()
