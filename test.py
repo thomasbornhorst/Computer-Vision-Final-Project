@@ -26,7 +26,7 @@ class SoccerTrackDataset(Dataset):
         # Increment player idID by 1 to reserve 0 for the background
         boxes = torch.tensor([row['bb_left'], row['bb_top'], row['x_max'], row['y_max']], dtype=torch.float32)
         boxes = boxes.T
-        labels = range(1,24)
+        labels = [1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,3]
         labels = torch.tensor(labels, dtype=torch.int64)
         
         target = {}
@@ -67,12 +67,14 @@ def test_model(model, data_loader, device):
     model.eval()
     total_loss = 0
     
-    for images, targets in data_loader:
+    for idx, (images, targets) in enumerate(data_loader):
         images = [img.to(device) for img in images]
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         preds = model(images)
         print(preds[0])
+
+        if idx >= 10: return
 
 def save_model(model):
     torch.save(model.state_dict(), 'rcnn_model.pth')
@@ -80,12 +82,12 @@ def save_model(model):
 def load_model(model):
     model.load_state_dict(torch.load('rcnn_model.pth')) 
 
-def main(load_saved_model = True):
+def main(load_saved_model = False):
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     img_dir = './data/top_view/frames'
     annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
-    num_classes = 24 # 22 players + 1 ball
+    num_classes = 4 # 22 players + 1 ball
 
     train_data, test_data = train_test_split(annotations_df, test_size=0.1, random_state=42)
     test_dataset = SoccerTrackDataset(test_data, img_dir)

@@ -29,7 +29,7 @@ class SoccerTrackDataset(Dataset):
         boxes = boxes.T
         labels = [1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,3]
         labels = torch.tensor(labels, dtype=torch.int64)
-        
+
         target = {}
         target['boxes'] = boxes
         target['labels'] = labels
@@ -52,7 +52,7 @@ def get_faster_rcnn_model(num_classes):
     - model (FasterRCNN): A Faster R-CNN model adjusted for the specified number of classes.
     """
     # Load an instance segmentation model pre-trained on COCO
-    model = fasterrcnn_resnet50_fpn()
+    model = fasterrcnn_resnet50_fpn(pretrained=True)
     
     # Get the number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
@@ -82,12 +82,12 @@ def train_model(model, data_loader, optimizer, device, num_epochs=10):
 
             total_loss += losses.item()
 
-            print(f"Epoch {epoch}, iter {iter}, loss: {total_loss / (iter + 1)}")
-            #save_model(model)
-
-            if iter == 50: return
+            if iter % 50 == 0:
+                print(f"Epoch {epoch}, iter {iter}, loss: {total_loss / (iter + 1)}")
+                save_model(model)
         
         print(f"Epoch #{epoch+1} Loss: {total_loss / len(data_loader)}")
+        save_model(model)
 
 def main(load_saved_model = False):
     annotations_dir = './data/top_view/annotations'
@@ -98,7 +98,7 @@ def main(load_saved_model = False):
 
     train_data, test_data = train_test_split(annotations_df, test_size=0.1, random_state=42)
     dataset = SoccerTrackDataset(train_data, img_dir)
-    data_loader = DataLoader(dataset, batch_size=1, collate_fn=lambda x: list(zip(*x)))
+    data_loader = DataLoader(dataset, batch_size=8, collate_fn=lambda x: list(zip(*x)))
 
     model = get_faster_rcnn_model(num_classes)
 
@@ -122,3 +122,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(load_saved_model=args.l)
+
