@@ -8,6 +8,8 @@ from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
 from torch.optim import SGD
 from prep_data import prep
 from sklearn.model_selection import train_test_split
+import pandas as pd
+import numpy as np
 
 class SoccerTrackDataset(Dataset):
     def __init__(self, annotations, img_dir, transforms=None):
@@ -51,7 +53,7 @@ def get_faster_rcnn_model(num_classes):
     - model (FasterRCNN): A Faster R-CNN model adjusted for the specified number of classes.
     """
     # Load an instance segmentation model pre-trained on COCO
-    model = fasterrcnn_resnet50_fpn()
+    model = fasterrcnn_resnet50_fpn(pretrained=False)
     
     # Get the number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
@@ -65,24 +67,40 @@ def test_model(model, data_loader, device):
     model.to(device)
     
     model.eval()
-    total_loss = 0
+    boxes_arr = []
+    labels_arr = []
     
     for idx, (images, targets) in enumerate(data_loader):
         images = [img.to(device) for img in images]
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         preds = model(images)
-        print(preds[0])
+        print(preds[0]) # feel free to comment out these print statements if remaking the entire csv files
+        print(targets)
+        for i in range(len(preds)):
+            boxes = []
+            for b in preds[i]['boxes'].tolist():
+                boxes += b
 
-        if idx >= 10: return
+            labels = preds[i]['labels'].tolist()
 
-def save_model(model):
-    torch.save(model.state_dict(), 'rcnn_model.pth')
+            boxes_arr.append(boxes)
+            labels_arr.append(labels)
+        return # comment out if wanting to run more than one image
+
+    boxes_df = pd.DataFrame(boxes_arr)
+    boxes_df.to_csv('./predictions/annotations/boxes.csv')
+    labels_df = pd.DataFrame(labels_arr)
+    labels_df.to_csv('./predictions/annotations/labels.csv')
+
+
+#def save_model(model):
+#    torch.save(model.state_dict(), 'rcnn_model.pth')
 
 def load_model(model):
-    model.load_state_dict(torch.load('rcnn_model.pth')) 
+    model.load_state_dict(torch.load('rcnn_model_16epochs.pth')) 
 
-def main(load_saved_model = False):
+def main(load_saved_model = True):
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     img_dir = './data/top_view/frames'
