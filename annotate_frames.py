@@ -20,20 +20,25 @@ def draw_bb(frame_img, bb, pred_class):
 
 def annotate_frames(predictions_df, pred_classes_df, test_df, frame_img_path, new_img_path):
     for frame_ind in range(len(predictions_df)):
-        frame = int(test_df.iloc[frame_ind,]['frame'])
+        print('on frame ', frame_ind)
+        if frame_ind >= 200:
+            return
 
+        frame = int(test_df.iloc[frame_ind,]['frame'])
+        frame_path = test_df.iloc[frame_ind,]['frame_path']
+        
         frame_predictions = predictions_df.iloc[frame,]
         pred_classes = pred_classes_df.iloc[frame,]
-        frame_name = '/frame_' + "{:05d}".format(frame+1) + '.jpg'
+        #frame_name = '/frame_' + "{:05d}".format(frame+1) + '.jpg'
 
-        frame_img = cv2.imread(frame_img_path+frame_name)
+        frame_img = cv2.imread(frame_path)
 
         for annotation_ind in range(len(pred_classes)-1):
             pred_bb = frame_predictions.iloc[annotation_ind*4+1:annotation_ind*4+5]
             pred_class = pred_classes.iloc[annotation_ind]
             frame_img = draw_bb(frame_img, pred_bb, pred_class)
-
-        if not cv2.imwrite(new_img_path+frame_name, frame_img):
+        
+        if not cv2.imwrite(new_img_path+frame_path[22:], frame_img):
             raise Exception("Could not write image. Make sure that appropriate frame directory exists.")
 
 def main():
@@ -48,7 +53,7 @@ def main():
 
     predictions_df = pd.read_csv(predictions_dir+'/boxes.csv')
     pred_labels_df = pd.read_csv(predictions_dir+'/labels.csv')
-
+    print('done getting data')
     annotate_frames(predictions_df, pred_labels_df, test_df, img_dir, viz_results__dir)
 
 if __name__ == "__main__":
