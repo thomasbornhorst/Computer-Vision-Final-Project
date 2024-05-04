@@ -3,9 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from torch.utils.data import Dataset
 from torchvision.io import read_image
-import torchvision.transforms as transforms
 from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
-from torch.optim import SGD
 from prep_data import prep
 import argparse
 from sklearn.model_selection import train_test_split
@@ -52,7 +50,7 @@ def get_faster_rcnn_model(num_classes):
     - model (FasterRCNN): A Faster R-CNN model adjusted for the specified number of classes.
     """
     # Load an instance segmentation model pre-trained on COCO
-    model = fasterrcnn_resnet50_fpn(pretrained=True)
+    model = fasterrcnn_resnet50_fpn()
     
     # Get the number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
@@ -108,7 +106,7 @@ def main(load_saved_model = False):
     optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.005)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    train_model(model, data_loader, optimizer, device, num_epochs=1)
+    train_model(model, data_loader, optimizer, device, num_epochs=2)
 
 def save_model(model):
     torch.save(model.state_dict(), 'rcnn_model.pth')

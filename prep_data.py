@@ -1,15 +1,6 @@
-import torchvision
-import torch
-from torch.utils.data import Dataset, DataLoader
 import os
 import cv2
 import pandas as pd
-from torch.utils.data import Dataset
-from torchvision.io import read_image
-import torchvision.transforms as transforms
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torch.optim import SGD
-from torchvision.transforms import Compose, ToTensor, Normalize
 from sklearn.model_selection import train_test_split
 
 
@@ -87,4 +78,5 @@ if __name__=="__main__":
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     frames_output_dir = './data/top_view/frames'
-    prep(annotations_dir, videos_dir, frames_output_dir, save_frames=True)
+    df = prep(annotations_dir, videos_dir, frames_output_dir, save_frames=False)
+    print(df.columns)

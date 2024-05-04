@@ -1,15 +1,11 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-import os
 from torch.utils.data import Dataset
 from torchvision.io import read_image
-import torchvision.transforms as transforms
 from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
-from torch.optim import SGD
 from prep_data import prep
 from sklearn.model_selection import train_test_split
 import pandas as pd
-import numpy as np
 
 class SoccerTrackDataset(Dataset):
     def __init__(self, annotations, img_dir, transforms=None):
@@ -73,7 +69,7 @@ def test_model(model, data_loader, device):
     for idx, (images, targets) in enumerate(data_loader):
         images = [img.to(device) for img in images]
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-
+        
         preds = model(images)
         print(preds[0]) # feel free to comment out these print statements if remaking the entire csv files
         print(targets)
@@ -87,11 +83,11 @@ def test_model(model, data_loader, device):
             boxes_arr.append(boxes)
             labels_arr.append(labels)
         return # comment out if wanting to run more than one image
-
+        
     boxes_df = pd.DataFrame(boxes_arr)
-    boxes_df.to_csv('./predictions/annotations/boxes.csv')
+    boxes_df.to_csv('./predictions/annotations/boxes_900.csv')
     labels_df = pd.DataFrame(labels_arr)
-    labels_df.to_csv('./predictions/annotations/labels.csv')
+    labels_df.to_csv('./predictions/annotations/labels_900.csv')
 
 
 #def save_model(model):
@@ -111,6 +107,9 @@ def main(load_saved_model = True):
     test_dataset = SoccerTrackDataset(test_data, img_dir)
     test_data_loader = DataLoader(test_dataset, collate_fn=lambda x: list(zip(*x)))
 
+    all_dataset = SoccerTrackDataset(annotations_df, img_dir)
+    all_data_loader = DataLoader(all_dataset, collate_fn=lambda x: list(zip(*x)))
+
     model = get_faster_rcnn_model(num_classes)
 
     if(load_saved_model):
@@ -119,7 +118,7 @@ def main(load_saved_model = True):
     # optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.005)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    test_model(model, test_data_loader, device)
+    test_model(model, all_data_loader, device)
     # train_model(model, data_loader, optimizer, device, num_epochs=10)
 
 if __name__ == "__main__":

@@ -20,7 +20,6 @@ def draw_bb(frame_img, bb, pred_class):
 
 def annotate_frames(predictions_df, pred_classes_df, test_df, frame_img_path, new_img_path):
     for frame_ind in range(len(predictions_df)):
-        print('on frame ', frame_ind)
         if frame_ind >= 200:
             return
 

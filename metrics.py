@@ -15,7 +15,7 @@ def get_metrics(annotations_df, predictions_df, pred_classes_df, iou_threshold):
         pred_classes = pred_classes_df.iloc[frame,]
         tp_count = 0
         fp_count = 0 #predict false, actually true
-
+        
         num_true_annotations = len(frame_annotations['bb_left'])
         num_pred_annotations = len(pred_classes)-1
 
