@@ -5,7 +5,7 @@ import pandas as pd
 
 def get_metrics(annotations_df, predictions_df, pred_classes_df, iou_threshold):
     num_frames = len(predictions_df)
-    #num_frames = 100
+    # num_frames = 10
     avg_prec = 0
     avg_rec = 0
 
@@ -43,7 +43,7 @@ def get_metrics(annotations_df, predictions_df, pred_classes_df, iou_threshold):
             if best_pred_bb is None: # No intersection with any truth bounding box
                 continue
 
-            #print(max_iou)
+            # print(max_iou)
             if max_iou > iou_threshold:
                 tp_count += 1
         
@@ -89,32 +89,54 @@ def intersection_size(bb1, bb2):
     
     return 0
 
-def gen_rand_annotations():
+def gen_rand_annotations(num_preds):
     x_max = 3840
     y_max = 2160
     player_height = 39 # Players 39 x 39
     # ball_height = 10 # Ball 10 x 10
+    boxes_arr = []
+    labels_arr = []
 
-    for _ in range(23): # 22 Players + Ball
-        bb_left = random.randint(0, x_max - player_height)
-        bb_right = bb_left + player_height
-        bb_top = random.randint(0, y_max - player_height)
-        bb_bot = bb_top + player_height
+    for _ in range(num_preds):
+        new_boxes = []
+        new_labels = []
+        for j in range(23): # 22 Players + Ball
+            bb_left = random.randint(0, x_max - player_height)
+            bb_right = bb_left + player_height
+            bb_top = random.randint(0, y_max - player_height)
+            bb_bot = bb_top + player_height
+            new_boxes.append(bb_left)
+            new_boxes.append(bb_right)
+            new_boxes.append(bb_top)
+            new_boxes.append(bb_bot)
+
+            if j == 22:
+                new_labels.append(2)
+            else:
+                new_labels.append(j % 2)
+
+        boxes_arr.append(new_boxes)
+        labels_arr.append(new_labels)
+    
+    boxes_df = pd.DataFrame(boxes_arr)
+    boxes_df.to_csv('./random_predictions/annotations/boxes.csv')
+    labels_df = pd.DataFrame(labels_arr)
+    labels_df.to_csv('./random_predictions/annotations/labels.csv')
 
 def main():
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     img_dir = './data/top_view/frames'
     predictions_dir = './predictions/annotations'
-    iou_threshold = 0.5
+    iou_threshold = 0.25
 
     annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
     train_df, test_df = train_test_split(annotations_df, test_size=0.1, random_state=42)
     predictions_df = pd.read_csv(predictions_dir+'/boxes.csv')
     pred_labels_df = pd.read_csv(predictions_dir+'/labels.csv')
 
+    # gen_rand_annotations(len(test_df))
     get_metrics(test_df, predictions_df, pred_labels_df,  iou_threshold)
-    # gen_rand_annotations()
 
 if __name__ == "__main__":
     main()
