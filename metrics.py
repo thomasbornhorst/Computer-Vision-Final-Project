@@ -89,7 +89,7 @@ def intersection_size(bb1, bb2):
     
     return 0
 
-def gen_rand_annotations(num_preds):
+def gen_rand_annotations(num_preds, rand_pred_dir):
     x_max = 3840
     y_max = 2160
     player_height = 39 # Players 39 x 39
@@ -119,15 +119,16 @@ def gen_rand_annotations(num_preds):
         labels_arr.append(new_labels)
     
     boxes_df = pd.DataFrame(boxes_arr)
-    boxes_df.to_csv('./random_predictions/annotations/boxes.csv')
+    boxes_df.to_csv(rand_pred_dir + '/boxes.csv')
     labels_df = pd.DataFrame(labels_arr)
-    labels_df.to_csv('./random_predictions/annotations/labels.csv')
+    labels_df.to_csv(rand_pred_dir + '/labels.csv')
 
 def main():
     annotations_dir = './data/top_view/annotations'
     videos_dir = './data/top_view/videos'
     img_dir = './data/top_view/frames'
     predictions_dir = './predictions/annotations'
+    random_predictions_dir = './random_predictions/annotations'
     iou_threshold = 0.25
 
     annotations_df = prep(annotations_dir, videos_dir, img_dir, save_frames=False)
@@ -135,7 +136,7 @@ def main():
     predictions_df = pd.read_csv(predictions_dir+'/boxes.csv')
     pred_labels_df = pd.read_csv(predictions_dir+'/labels.csv')
 
-    # gen_rand_annotations(len(test_df))
+    # gen_rand_annotations(len(test_df), random_predictions_dir)
     get_metrics(test_df, predictions_df, pred_labels_df,  iou_threshold)
 
 if __name__ == "__main__":
