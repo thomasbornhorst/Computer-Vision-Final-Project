@@ -1,18 +1,20 @@
 # Computer-Vision-Final-Project
 
+Colin Chenoweth (cwc63), Thomas Bornhorst (thb34), and Olivia Tchilibou (axt619)
+
 Kaggle Dataset Original Paper:
 https://openaccess.thecvf.com/content/CVPR2022W/CVSports/papers/Scott_SoccerTrack_A_Dataset_and_Tracking_Algorithm_for_Soccer_With_Fish-Eye_CVPRW_2022_paper.pdf
 
-Step 1:
-Design Faster R-CNN of some sort to create bounding boxes, and train a subset of the video frames from SoccerTrack dataset.
+Files
 
-Step 2:
-Track player identities across frames.
+prep_data.py: converts dataset into usable Pandas data frame; can extract frames from .mp4 files if needed.
 
-^^ Try to do before Monday April 8th ^^
+faster_RCNN.py: Main file for this project, creates and trains a torchvision Faster RCNN model.
 
-Step 3:
-Associate players with their specific team.
+test.py: Can be used to print predicted and ground truth bounding boxes for test data, or can write predictions to a .csv for further analysis
 
-Step 4:
-Try to collect information such as which team has possession when, regions where players/ball most commonly are, formation, etc. This can be as big as we want.
+metrics.py: Extracts and prints precision and recall for a given intersection over the union (IOU) threshold. Can choose to ignore classes or not to get these metrics.
+
+annotate_frames.py: Can overlay bounding boxes onto a frame, and can show the comparison of total ground truth boxes vs predicted boxes.
+
+tracking.py: Used to making an animated tracking .gif of the players and to track possesion of the ball during the game.
